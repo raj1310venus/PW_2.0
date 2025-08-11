@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { CategoryRepo } from "@/lib/db";
+import { ProductRepo } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
 import { getCollection } from "@/lib/mongo";
 import { ObjectId } from "mongodb";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireAdmin();
+  const auth = await requireAdmin();
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const body = await req.json().catch(() => ({}));
-  const col = await getCollection<any>("categories");
+  const col = await getCollection<any>("products");
   if (col) {
     try {
       const _id = new ObjectId(params.id);
@@ -25,15 +25,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     }
   }
-  const updated = CategoryRepo.update(params.id, body);
+  const updated = ProductRepo.update(params.id, body);
   if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(updated);
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const auth = requireAdmin();
+  const auth = await requireAdmin();
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const col = await getCollection<any>("categories");
+  const col = await getCollection<any>("products");
   if (col) {
     try {
       const _id = new ObjectId(params.id);
@@ -44,7 +44,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     }
   }
-  const ok = CategoryRepo.remove(params.id);
+  const ok = ProductRepo.remove(params.id);
   if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
