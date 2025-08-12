@@ -119,29 +119,34 @@ export default function MainNav() {
     setTheme(next);
   };
 
-  const NavLinks = ({ className = "" }: { className?: string }) => (
-    <nav className={`flex items-center gap-8 lg:gap-10 text-sm ${className}`}>
-      {links.map((l) => {
-        const active = pathname === l.href;
-        return (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={`relative group px-1.5 py-0.5 transition-colors ${
-              active ? "text-[var(--accent)]" : "hover:text-[var(--accent)]"
-            }`}
-          >
-            {l.label}
-            <span
-              className={`pointer-events-none absolute -bottom-2 left-0 right-0 h-[2px] bg-[var(--accent)] rounded origin-left transition-transform duration-300 ease-out ${
-                active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+  const NavLinks = ({ className = "" }: { className?: string }) => {
+    const pathname = usePathname();
+    return (
+      <nav className={`hidden md:flex items-center gap-1 ${className}`}>
+        {links.map((l) => {
+          const active = pathname === l.href;
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={`relative px-3 py-2 rounded-md text-sm transition-colors group ${
+                active ? "text-white" : "text-white/80 hover:text-white"
               }`}
-            />
-          </Link>
-        );
-      })}
-    </nav>
-  );
+            >
+              {l.label}
+              <span
+                className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-accent transition-all duration-300 ease-out ${
+                  active
+                    ? "w-[calc(100%-1.5rem)]"
+                    : "w-0 group-hover:w-[calc(100%-1.5rem)]"
+                }`}
+              />
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  };
 
   return (
     <div className={`border-b border-white/10 bg-[var(--surface)]/90 backdrop-blur ${scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.25)]" : ""}`}>
