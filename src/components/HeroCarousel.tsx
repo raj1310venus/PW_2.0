@@ -31,19 +31,18 @@ export default function HeroCarousel({ slides, interval = 4500 }: { slides: Slid
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg bg-[var(--surface)] border border-white/10"
-      style={{ minHeight: 220 }}
+      className="relative h-[220px] md:h-[360px] overflow-hidden rounded-lg bg-[var(--surface)] border border-white/10"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       {/* Sliding track */}
-      <div className="relative h-[220px] md:h-[360px]">
+      <div className="relative w-full h-full">
         <div
           className="flex h-full w-full transition-transform duration-700 ease-out"
           style={trackStyle}
         >
           {slides.map((s, i) => (
-            <div key={i} className="relative w-full shrink-0 h-full bg-black">
+            <div key={i} className="relative w-full shrink-0 h-full">
               {/* Image background */}
               {s.imageUrl && (
                 <Image
@@ -52,7 +51,7 @@ export default function HeroCarousel({ slides, interval = 4500 }: { slides: Slid
                   fill
                   priority={i === index}
                   sizes="(max-width: 768px) 100vw, 1024px"
-                  className="object-contain opacity-60"
+                  className="object-cover opacity-60"
                 />
               )}
 
