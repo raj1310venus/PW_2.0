@@ -56,7 +56,7 @@ export default function HeroCarousel({ slides, interval = 4500 }: { slides: Slid
               )}
 
               {/* Content */}
-              <div className="relative p-8 md:p-12">
+              <div className="relative h-full flex flex-col justify-end items-end text-right p-8 md:p-12">
                 <h2 className="text-3xl md:text-4xl font-semibold mb-2">{s.title}</h2>
                 {s.subtitle && <p className="text-white/80 mb-4 max-w-xl">{s.subtitle}</p>}
                 {s.cta && (

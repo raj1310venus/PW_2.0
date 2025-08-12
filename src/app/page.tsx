@@ -53,12 +53,6 @@ export default async function Home() {
         <HeroCarousel
           slides={[
             {
-              title: "Unbeatable Deals Every Day",
-              subtitle: "Discover massive savings on electronics, furniture, and more. Your one-stop shop for value.",
-              cta: { label: "Shop All Deals", href: "/products" },
-              imageUrl: "/images/banners/carousel slider 1.png",
-            },
-            {
               title: "Refresh Your Wardrobe",
               subtitle: "Explore the latest trends in fashion for the whole family. Quality apparel at prices you'll love.",
               cta: { label: "Explore Fashion", href: "/products?category=clothing" },
@@ -69,6 +63,12 @@ export default async function Home() {
               subtitle: "From stylish decor to essential appliances, find everything you need to create your dream home.",
               cta: { label: "Shop Home Goods", href: "/products?category=household-appliances" },
               imageUrl: "/images/banners/carousel slider 3.png",
+            },
+            {
+              title: "Unbeatable Deals Every Day",
+              subtitle: "Discover massive savings on electronics, furniture, and more. Your one-stop shop for value.",
+              cta: { label: "Shop All Deals", href: "/products" },
+              imageUrl: "/images/banners/carousel slider 1.png",
             },
           ]}
         />
