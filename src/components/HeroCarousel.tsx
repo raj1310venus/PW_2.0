@@ -43,7 +43,7 @@ export default function HeroCarousel({ slides, interval = 4500 }: { slides: Slid
           style={trackStyle}
         >
           {slides.map((s, i) => (
-            <div key={i} className="relative w-full shrink-0 h-full">
+            <div key={i} className="relative w-full shrink-0 h-full bg-black">
               {/* Image background */}
               {s.imageUrl && (
                 <Image
@@ -52,7 +52,7 @@ export default function HeroCarousel({ slides, interval = 4500 }: { slides: Slid
                   fill
                   priority={i === index}
                   sizes="(max-width: 768px) 100vw, 1024px"
-                  className="object-cover opacity-60"
+                  className="object-contain opacity-60"
                 />
               )}
 

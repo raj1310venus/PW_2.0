@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { categories } from "@/lib/catalog";
 import HeroCarousel from "@/components/HeroCarousel";
 import ProductCard from "@/components/ProductCard";
+import ChatbotLoader from '@/components/ChatbotLoader';
 
 async function fetchSection(params: { category?: string; featured?: boolean; limit?: number }) {
   const sp = new URLSearchParams();
@@ -52,18 +53,23 @@ export default async function Home() {
         <HeroCarousel
           slides={[
             {
-              title: "Featured Deals",
-              subtitle:
-                "Where value meets variety. Discover weekly savings across Clothing, Luggage, Bath & Linen, Appliances, Utensils, and more.",
-              cta: { label: "Shop Now", href: "#gallery" },
-              imageUrl: categories.find(c => c.imageUrl)?.imageUrl,
+              title: "Unbeatable Deals Every Day",
+              subtitle: "Discover massive savings on electronics, furniture, and more. Your one-stop shop for value.",
+              cta: { label: "Shop All Deals", href: "/products" },
+              imageUrl: "/images/banners/carousel slider 1.png",
             },
-            ...categories.slice(0, 2).map((c) => ({
-              title: c.label,
-              subtitle: "Browse our latest arrivals and essentials.",
-              cta: { label: "Explore", href: `/category/${c.slug}` },
-              imageUrl: c.imageUrl,
-            })),
+            {
+              title: "Refresh Your Wardrobe",
+              subtitle: "Explore the latest trends in fashion for the whole family. Quality apparel at prices you'll love.",
+              cta: { label: "Explore Fashion", href: "/products?category=clothing" },
+              imageUrl: "/images/banners/carousel slider 2.png",
+            },
+            {
+              title: "Transform Your Living Space",
+              subtitle: "From stylish decor to essential appliances, find everything you need to create your dream home.",
+              cta: { label: "Shop Home Goods", href: "/products?category=household-appliances" },
+              imageUrl: "/images/banners/carousel slider 3.png",
+            },
           ]}
         />
       </section>
@@ -235,6 +241,7 @@ export default async function Home() {
         </div>
       </section>
 
+      <ChatbotLoader />
     </div>
   );
 }
