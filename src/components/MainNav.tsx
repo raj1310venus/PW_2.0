@@ -14,6 +14,17 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
+const categoryLinks = [
+  { href: "/category/electronics", label: "Electronics" },
+  { href: "/category/hardware", label: "Hardware" },
+  { href: "/category/clothing", label: "Clothing" },
+  { href: "/category/luggage", label: "Luggage" },
+  { href: "/category/bath-linen", label: "Bath & Linen" },
+  { href: "/category/household-appliances", label: "Household Appliances" },
+  { href: "/category/utensils", label: "Utensils" },
+  { href: "/category/bath-mats-rugs-carpets", label: "Bath Mats, Rugs & Carpets" },
+];
+
 export default function MainNav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -195,15 +206,19 @@ export default function MainNav() {
         </div>
       </div>
 
-      {/* Category shortcuts */}
-      <div className="mx-auto max-w-6xl px-4 pb-3 hidden md:block">
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar text-sm">
-          {categories.map((c) => (
-            <Link key={c.slug} href={`/category/${c.slug}`} className="px-3 py-1 rounded-md bg-black/20 border border-white/10 hover:border-[var(--accent)]/60 whitespace-nowrap">
+      {/* Category strip */}
+      <div className="mx-auto max-w-6xl px-4 pb-2 hidden md:block">
+        <nav className="flex items-center gap-4 text-sm overflow-x-auto no-scrollbar min-w-0">
+          {categoryLinks.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="shrink-0 px-2 py-1 rounded hover:text-[var(--accent)] hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors"
+            >
               {c.label}
             </Link>
           ))}
-        </div>
+        </nav>
       </div>
 
       {/* Mobile menu (animated collapse) */}
