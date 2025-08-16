@@ -15,7 +15,7 @@ export default function ProductCard({ id, name, price, imageUrl, featured, descr
   const { add } = useCart();
   return (
     <div className="card p-3 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-all">
-      <div className="relative h-40 w-full overflow-hidden rounded-md bg-white/5">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-md">
         {imageUrl ? (
           <Image src={imageUrl} alt={name} fill className="object-cover" sizes="(max-width:768px) 100vw, 33vw" />
         ) : (

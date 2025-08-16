@@ -59,22 +59,25 @@ export default function MainNav() {
     };
   }, []);
 
-  // Lock body scroll while cart is open and close on Escape
+  // Close cart on Escape key or click outside
   useEffect(() => {
-    const body = document.body;
-    const prevOverflow = body.style.overflow;
-    if (cartOpen) {
-      body.style.overflow = 'hidden';
-    } else {
-      body.style.overflow = prevOverflow || '';
-    }
+    if (!cartOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setCartOpen(false);
     };
-    if (cartOpen) window.addEventListener('keydown', onKey);
+    const onClickOutside = (e: MouseEvent) => {
+      const cartButton = (e.target as HTMLElement).closest('[aria-label="Open cart"]');
+      const cartPanel = (e.target as HTMLElement).closest('[aria-label="Shopping cart"]');
+      if (!cartButton && !cartPanel) {
+        setCartOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClickOutside);
     return () => {
-      body.style.overflow = prevOverflow || '';
       window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClickOutside);
     };
   }, [cartOpen]);
 
@@ -130,7 +133,9 @@ export default function MainNav() {
               key={l.href}
               href={l.href}
               className={`relative px-3 py-2 rounded-md text-sm transition-colors group ${
-                active ? "text-white" : "text-white/80 hover:text-white"
+                active
+                  ? "text-[var(--foreground)]"
+                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
               {l.label}
@@ -149,7 +154,7 @@ export default function MainNav() {
   };
 
   return (
-    <div className={`border-b border-white/10 bg-[var(--surface)]/90 backdrop-blur ${scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.25)]" : ""}`}>
+    <div className={`border-b border-white/10 bg-[var(--surface)] backdrop-blur ${scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.25)]" : ""}`}>
       <div className="mx-auto max-w-6xl px-4 py-3 grid items-center gap-3 md:gap-4" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
         {/* Left: Logo */}
         <div className="justify-self-start shrink-0">
@@ -182,20 +187,80 @@ export default function MainNav() {
               Search
             </button>
           </div>
-          {/* Cart button */}
-          <button
-            title="Cart"
-            aria-label="Open cart"
-            className="relative h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0"
-            onClick={() => setCartOpen(true)}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 6 5 3H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
-            {count > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-black text-[11px] grid place-items-center font-semibold">
-                {count}
-              </span>
-            )}
-          </button>
+          {/* Cart button and dropdown */}
+          <div className="relative">
+            <button
+              title="Cart"
+              aria-label="Open cart"
+              className="relative h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0"
+              onClick={() => setCartOpen(v => !v)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 6 5 3H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
+              {count > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-black text-[11px] grid place-items-center font-semibold">
+                  {count}
+                </span>
+              )}
+            </button>
+
+            {/* Cart Dropdown Panel */}
+            <div
+              className={`absolute top-full right-0 mt-2 w-80 md:w-96 bg-[var(--surface)] border border-white/10 rounded-lg shadow-xl z-50 origin-top-right transition-all duration-200 ease-out ${cartOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+              role="dialog"
+              aria-label="Shopping cart"
+              aria-hidden={!cartOpen}
+            >
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="text-lg font-semibold">Your Cart</div>
+                <button aria-label="Close cart" className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10" onClick={() => setCartOpen(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+              <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
+                {items.length === 0 ? (
+                  <div className="text-white/70 text-sm">Your cart is empty.</div>
+                ) : (
+                  items.map((it) => (
+                    <div key={it.id} className="flex items-center gap-3">
+                      <div className="size-14 rounded bg-white/5 overflow-hidden flex items-center justify-center shrink-0">
+                        {it.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={it.imageUrl} alt={it.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="text-xs text-white/40">No image</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{it.name}</div>
+                        <div className="text-xs text-white/60">${(it.price || 0).toFixed(2)}</div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <button className="px-2 py-1 rounded bg-white/10" onClick={() => setQty(it.id, Math.max(1, it.qty - 1))} aria-label="Decrease quantity">-</button>
+                          <span className="text-sm w-6 text-center">{it.qty}</span>
+                          <button className="px-2 py-1 rounded bg-white/10" onClick={() => setQty(it.id, it.qty + 1)} aria-label="Increase quantity">+</button>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold">${(((it.price || 0) * it.qty).toFixed(2))}</div>
+                      <button className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0" aria-label="Remove item" onClick={() => remove(it.id)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+              {items.length > 0 && (
+                <div className="p-4 border-t border-white/10 bg-[var(--surface)]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm text-white/70">Subtotal</div>
+                    <div className="text-base font-semibold">${total.toFixed(2)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={clear} className="flex-1 btn-secondary">Clear Cart</button>
+                    <button onClick={() => router.push('/checkout')} className="flex-1 btn-accent">Checkout</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           <button title={mode === 'auto' ? 'Theme: auto (system)' : 'Theme: manual'} aria-label="Toggle theme" aria-pressed={theme === 'light'} onClick={toggleTheme} className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0">
             {theme === 'light' ? (
               // Moon icon for switching to dark
@@ -218,7 +283,7 @@ export default function MainNav() {
             <Link
               key={c.href}
               href={c.href}
-              className="shrink-0 px-2 py-1 rounded hover:text-[var(--accent)] hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors"
+              className="text-[var(--muted)] shrink-0 px-2 py-1 rounded hover:text-[var(--accent)] hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors"
             >
               {c.label}
             </Link>
@@ -234,75 +299,6 @@ export default function MainNav() {
         aria-hidden={!open}
       >
         <NavLinks className="flex flex-col gap-4 pt-3" />
-      </div>
-
-      {/* Cart Drawer */}
-      <div
-        className={`fixed inset-0 z-[100] ${cartOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        aria-hidden={!cartOpen}
-      >
-        {/* Backdrop */}
-        <div
-          className={`absolute inset-0 transition-opacity duration-300 ${cartOpen ? 'opacity-100' : 'opacity-0'}`}
-          style={{ background: 'rgba(0,0,0,0.5)' }}
-          onClick={() => setCartOpen(false)}
-        />
-        {/* Panel */}
-        <aside
-          className={`absolute right-0 top-0 h-full w-full sm:w-[90%] md:w-[420px] lg:w-[500px] bg-[var(--surface)] border-l border-white/10 shadow-xl transition-transform duration-300 ease-out ${cartOpen ? 'translate-x-0' : 'translate-x-full'}`}
-          role="dialog"
-          aria-label="Shopping cart"
-        >
-          <div className="p-4 border-b border-white/10 flex items-center justify-between">
-            <div className="text-lg font-semibold">Your Cart</div>
-            <button aria-label="Close cart" className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10" onClick={() => setCartOpen(false)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </button>
-          </div>
-          <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)]">
-            {items.length === 0 ? (
-              <div className="text-white/70 text-sm">Your cart is empty.</div>
-            ) : (
-              items.map((it) => (
-                <div key={it.id} className="flex items-center gap-3">
-                  <div className="size-14 rounded bg-white/5 overflow-hidden flex items-center justify-center">
-                    {it.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={it.imageUrl} alt={it.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="text-xs text-white/40">No image</div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{it.name}</div>
-                    <div className="text-xs text-white/60">${(it.price || 0).toFixed(2)}</div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <button className="px-2 py-1 rounded bg-white/10" onClick={() => setQty(it.id, Math.max(1, it.qty - 1))} aria-label="Decrease quantity">-</button>
-                      <span className="text-sm w-6 text-center">{it.qty}</span>
-                      <button className="px-2 py-1 rounded bg-white/10" onClick={() => setQty(it.id, it.qty + 1)} aria-label="Increase quantity">+</button>
-                    </div>
-                  </div>
-                  <div className="text-sm font-semibold">${(((it.price || 0) * it.qty).toFixed(2))}</div>
-                  <button className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10" aria-label="Remove item" onClick={() => remove(it.id)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="p-4 border-t border-white/10 bg-[var(--surface)]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm text-white/70">Subtotal</div>
-              <div className="text-base font-semibold">${total.toFixed(2)}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="flex-1 btn-accent px-3 py-2 rounded text-sm" onClick={() => setCartOpen(false)}>Checkout</button>
-              {items.length > 0 && (
-                <button className="px-3 py-2 rounded text-sm bg-white/10 border border-white/10" onClick={clear}>Clear</button>
-              )}
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );

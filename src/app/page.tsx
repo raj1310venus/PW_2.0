@@ -5,6 +5,7 @@ import { categories } from "@/lib/catalog";
 import HeroCarousel from "@/components/HeroCarousel";
 import ProductCard from "@/components/ProductCard";
 import ChatbotLoader from '@/components/ChatbotLoader';
+import { MapPin, Phone, Mail, Sparkles } from 'lucide-react';
 
 async function fetchSection(params: { category?: string; featured?: boolean; limit?: number }) {
   const sp = new URLSearchParams();
@@ -28,14 +29,15 @@ async function fetchSection(params: { category?: string; featured?: boolean; lim
 }
 
 export default async function Home() {
-  const placeholderImages = [
-    "https://source.unsplash.com/1200x900/?electronics,gadgets",
-    "https://source.unsplash.com/1200x900/?fashion,clothes",
-    "https://source.unsplash.com/1200x900/?home,deco",
-    "https://source.unsplash.com/1200x900/?furniture,interior",
-    "https://source.unsplash.com/1200x900/?sale,shopping",
-    "https://source.unsplash.com/1200x900/?canada,souvenir",
-  ];
+  const sectionPlaceholders = {
+    'household-appliances': '/images/product-gallery/HouseHold Appliances Product Gallery.png',
+    'clothing': '/images/product-gallery/Clothing Product gallery.png',
+    'bath-linen': '/images/product-gallery/Bath and linen Prodct Gallery.png',
+    'luggage': '/images/product-gallery/Luggage Product Gallery.png',
+    'utensils': '/images/product-gallery/Utensils Product Gallery.png',
+    'carpets': '/images/product-gallery/Carpet Product Gallery.png',
+    'default': 'https://source.unsplash.com/1200x900/?product,item',
+  };
   // Preload key sections in parallel for performance
   const [gadgets, fashion, decor, furniture, clearance, souvenirs] = await Promise.all([
     fetchSection({ category: "household-appliances", featured: true, limit: 6 }),
@@ -76,21 +78,38 @@ export default async function Home() {
 
       {/* Info Row */}
       <section className="grid md:grid-cols-4 gap-4" aria-label="Store info">
-        <div className="card p-4">
-          <div className="text-sm text-white/60">Address</div>
-          <div className="font-medium">644 Danforth Ave & Pape Ave, Toronto, ON</div>
-        </div>
-        <div className="card p-4">
-          <div className="text-sm text-white/60">Phone</div>
-          <div className="font-medium">(123) 456-7890</div>
-        </div>
-        <div className="card p-4">
-          <div className="text-sm text-white/60">Email</div>
-          <div className="font-medium">info@pricewarstore.com</div>
-        </div>
-        <div className="card p-4">
-          <div className="text-sm text-white/60">Tagline</div>
-          <div className="font-medium">Where value meets variety.</div>
+        <a
+          href="https://www.google.com/maps/search/?api=1&query=644+Danforth+Ave+%26+Pape+Ave,+Toronto,+ON"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card p-4 flex items-start gap-3 group transition-colors hover:bg-gradient-to-br from-white/10 to-white/5"
+        >
+          <MapPin className="size-5 mt-0.5 text-white/60 transition-transform group-hover:scale-110 group-hover:text-accent" />
+          <div>
+            <div className="text-sm text-white/60">Address</div>
+            <div className="font-medium">644 Danforth Ave & Pape Ave, Toronto, ON</div>
+          </div>
+        </a>
+        <a href="tel:+1-123-456-7890" className="card p-4 flex items-start gap-3 group transition-colors hover:bg-gradient-to-br from-white/10 to-white/5">
+          <Phone className="size-5 mt-0.5 text-white/60 transition-transform group-hover:animate-shake group-hover:text-accent" />
+          <div>
+            <div className="text-sm text-white/60">Phone</div>
+            <div className="font-medium">(123) 456-7890</div>
+          </div>
+        </a>
+        <a href="mailto:info@pricewarstore.com" className="card p-4 flex items-start gap-3 group transition-colors hover:bg-gradient-to-br from-white/10 to-white/5">
+          <Mail className="size-5 mt-0.5 text-white/60 transition-transform group-hover:-translate-y-0.5 group-hover:text-accent" />
+          <div>
+            <div className="text-sm text-white/60">Email</div>
+            <div className="font-medium">info@pricewarstore.com</div>
+          </div>
+        </a>
+        <div className="card p-4 flex items-start gap-3 group transition-colors hover:bg-gradient-to-br from-white/10 to-white/5">
+          <Sparkles className="size-5 mt-0.5 text-white/60 transition-transform group-hover:scale-110 group-hover:text-accent" />
+          <div>
+            <div className="text-sm text-white/60">Tagline</div>
+            <div className="font-medium">Where value meets variety.</div>
+          </div>
         </div>
       </section>
 
@@ -98,27 +117,29 @@ export default async function Home() {
       <section id="gallery" className="space-y-4">
         <h2 className="text-2xl font-semibold">Product Gallery</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categories.map((item) => (
+          {[
+            { name: 'Clothing', slug: 'clothing', imageUrl: '/images/product-gallery/Clothig Product gallery.png' },
+            { name: 'Luggage', slug: 'luggage', imageUrl: '/images/product-gallery/Luggage Product Gallery.png' },
+            { name: 'Bath & Linen', slug: 'bath-linen', imageUrl: '/images/product-gallery/Bath and linen Prodct Gallery.png' },
+            { name: 'Household Appliances', slug: 'household-appliances', imageUrl: '/images/product-gallery/HouseHold Appliances Product Gallery.png' },
+            { name: 'Utensils', slug: 'utensils', imageUrl: '/images/product-gallery/Utensils Product Gallery.png' },
+            { name: 'Bath Mats, Rugs & Carpets', slug: 'bath-mats-rugs-carpets', imageUrl: '/images/product-gallery/Carpet Product Gallery.png' },
+          ].map((c) => (
             <Link
-              key={item.slug}
-              href={`/category/${item.slug}`}
-              className="card p-3 hover:border-[var(--accent)]/60 transition">
-              {item.imageUrl ? (
-                <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.label}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="aspect-[4/3] bg-white/5 rounded-md flex items-center justify-center text-6xl">
-                  <span aria-hidden>{item.emoji}</span>
-                </div>
-              )}
-              <div className="mt-3 text-center font-medium">{item.label}</div>
+              key={c.slug}
+              href={`/category/${c.slug}`}
+              className="card p-3 hover:border-[var(--accent)]/60 transition group"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden rounded-md">
+                <Image
+                  src={c.imageUrl}
+                  alt={c.name}
+                  fill
+                  className="object-contain transition-transform duration-500 ease-in-out group-hover:scale-110"
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                />
+              </div>
+              <div className="mt-3 text-center font-medium transition-all duration-300 group-hover:bg-black/20 group-hover:backdrop-blur-sm group-hover:py-2 group-hover:px-4 group-hover:rounded-lg">{c.name}</div>
             </Link>
           ))}
         </div>
@@ -133,13 +154,13 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(gadgets.length ? gadgets : placeholderImages.map((img, i) => ({
-            _id: `gadgets-placeholder-${i}`,
-            name: `Gadget ${i + 1}`,
-            price: 19.99 + i * 5,
-            imageUrl: img,
+          {(gadgets.length ? gadgets : Array.from({ length: 6 }).map((_, i) => ({
+            _id: `gadget-placeholder-${i}`,
+            name: `Appliance ${i + 1}`,
+            price: 29.99 + i * 10,
+            imageUrl: sectionPlaceholders['household-appliances'],
             featured: true,
-            description: "Limited time offer",
+            description: "Latest tech picks",
           }))).map((p: any) => (
             <ProductCard key={p._id || p.slug || p.name} id={(p._id || p.slug || p.name) as string} name={p.name} price={p.price} imageUrl={p.imageUrl} featured={p.featured} description={p.description} />
           ))}
@@ -152,13 +173,13 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(fashion.length ? fashion : placeholderImages.map((img, i) => ({
+          {(fashion.length ? fashion : Array.from({ length: 6 }).map((_, i) => ({
             _id: `fashion-placeholder-${i}`,
-            name: `Fashion Deal ${i + 1}`,
-            price: 14.99 + i * 4,
-            imageUrl: img,
+            name: `Fashion Item ${i + 1}`,
+            price: 19.99 + i * 5,
+            imageUrl: sectionPlaceholders['clothing'],
             featured: true,
-            description: "Hot pick this week",
+            description: "Latest trends",
           }))).map((p: any) => (
             <ProductCard key={p._id || p.slug || p.name} id={(p._id || p.slug || p.name) as string} name={p.name} price={p.price} imageUrl={p.imageUrl} featured={p.featured} description={p.description} />
           ))}
@@ -171,11 +192,11 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(decor.length ? decor : placeholderImages.map((img, i) => ({
+          {(decor.length ? decor : Array.from({ length: 6 }).map((_, i) => ({
             _id: `decor-placeholder-${i}`,
             name: `Decor Item ${i + 1}`,
             price: 9.99 + i * 3,
-            imageUrl: img,
+            imageUrl: sectionPlaceholders['bath-linen'],
             featured: true,
             description: "Refresh your space",
           }))).map((p: any) => (
@@ -190,11 +211,11 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(furniture.length ? furniture : placeholderImages.map((img, i) => ({
+          {(furniture.length ? furniture : Array.from({ length: 6 }).map((_, i) => ({
             _id: `furniture-placeholder-${i}`,
             name: `Furniture ${i + 1}`,
             price: 49.99 + i * 10,
-            imageUrl: img,
+            imageUrl: sectionPlaceholders['luggage'], // Using luggage as placeholder
             featured: true,
             description: "Style meets comfort",
           }))).map((p: any) => (
@@ -209,11 +230,11 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(clearance.length ? clearance : placeholderImages.map((img, i) => ({
+          {(clearance.length ? clearance : Array.from({ length: 6 }).map((_, i) => ({
             _id: `clearance-placeholder-${i}`,
             name: `Clearance ${i + 1}`,
             price: 5.99 + i * 2,
-            imageUrl: img,
+            imageUrl: sectionPlaceholders['utensils'], // Using utensils as placeholder
             featured: true,
             description: "Last chance deal",
           }))).map((p: any) => (
@@ -228,11 +249,11 @@ export default async function Home() {
           <Link href="/products" className="text-sm hover:text-[var(--accent)]">View all</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(souvenirs.length ? souvenirs : placeholderImages.map((img, i) => ({
+          {(souvenirs.length ? souvenirs : Array.from({ length: 6 }).map((_, i) => ({
             _id: `souvenir-placeholder-${i}`,
             name: `Souvenir ${i + 1}`,
             price: 7.99 + i * 2,
-            imageUrl: img,
+            imageUrl: sectionPlaceholders['carpets'], // Using carpets as placeholder
             featured: true,
             description: "Canada keepsake",
           }))).map((p: any) => (
