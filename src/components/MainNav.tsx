@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { categories } from "@/lib/catalog";
 import { useCart } from "@/contexts/CartContext";
+import { Home, Package, Tag, Info, Phone, ShoppingCart, Search as SearchIcon, Sun, Moon, Menu as MenuIcon, X } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -35,6 +38,7 @@ export default function MainNav() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mode, setMode] = useState<"auto" | "manual">("auto");
   const { items, count, total, setQty, remove, clear } = useCart();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4);
@@ -128,6 +132,13 @@ export default function MainNav() {
       <nav className={`hidden md:flex items-center gap-1 ${className}`}>
         {links.map((l) => {
           const active = pathname === l.href;
+          const Icon =
+            l.href === "/" ? Home :
+            l.href === "/products" ? Package :
+            l.href === "/deals" ? Tag :
+            l.href === "/about" ? Info :
+            l.href === "/contact" ? Phone :
+            Home;
           return (
             <Link
               key={l.href}
@@ -138,7 +149,10 @@ export default function MainNav() {
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
-              {l.label}
+              <span className="inline-flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                {l.label}
+              </span>
               <span
                 className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-accent transition-all duration-300 ease-out ${
                   active
@@ -158,8 +172,11 @@ export default function MainNav() {
       <div className="mx-auto max-w-6xl px-4 py-3 grid items-center gap-3 md:gap-4" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
         {/* Left: Logo */}
         <div className="justify-self-start shrink-0">
-          <Link href="/" className="text-2xl font-semibold tracking-wide" style={{ fontFamily: "var(--font-playfair)" }}>
-            PriceWar
+          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-semibold tracking-wide" style={{ fontFamily: "var(--font-playfair)" }}>
+            <span className="relative inline-block h-[16px] w-[24px] rounded-sm overflow-hidden ring-1 ring-white/40">
+              <Image src="/flags/ca.svg" alt="Canada" fill sizes="24px" className="object-cover" />
+            </span>
+            <span>PriceWar</span>
           </Link>
         </div>
 
@@ -168,10 +185,10 @@ export default function MainNav() {
           <NavLinks />
         </div>
 
-        {/* Right: Search + Theme + Cart + Mobile toggle */}
+        {/* Right: Search + Auth + Theme + Cart + Mobile toggle */}
         <div className="justify-self-end flex items-center gap-2 min-w-0">
           <div className="flex-1 min-w-0 sm:flex items-center gap-2 bg-black/20 border border-white/10 rounded-md px-2 py-1 md:min-w-[200px] max-w-full">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="opacity-70"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5"/></svg>
+            <SearchIcon size={16} className="opacity-70" />
             <input
               aria-label="Search for products, categories"
               placeholder="Search for products, categories"
@@ -195,7 +212,7 @@ export default function MainNav() {
               className="relative h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0"
               onClick={() => setCartOpen(v => !v)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 6 5 3H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
+              <ShoppingCart size={16} />
               {count > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-black text-[11px] grid place-items-center font-semibold">
                   {count}
@@ -213,7 +230,7 @@ export default function MainNav() {
               <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <div className="text-lg font-semibold">Your Cart</div>
                 <button aria-label="Close cart" className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10" onClick={() => setCartOpen(false)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  <X size={16} />
                 </button>
               </div>
               <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
@@ -241,7 +258,7 @@ export default function MainNav() {
                       </div>
                       <div className="text-sm font-semibold">${(((it.price || 0) * it.qty).toFixed(2))}</div>
                       <button className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0" aria-label="Remove item" onClick={() => remove(it.id)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                        <X size={14} />
                       </button>
                     </div>
                   ))
@@ -261,17 +278,30 @@ export default function MainNav() {
               )}
             </div>
           </div>
+          {/* Auth */}
+          {session ? (
+            <button
+              onClick={() => signOut()}
+              className="px-3 h-8 rounded-md bg-white/90 text-black border border-white/10 text-sm shrink-0"
+              title={`Signed in as ${session.user?.email || session.user?.name || ''}`}
+            >
+              Sign out
+            </button>
+          ) : (
+            <Link href="/signin" className="px-3 h-8 grid place-items-center rounded-md bg-white/10 border border-white/10 text-sm shrink-0">
+              Sign in
+            </Link>
+          )}
+
           <button title={mode === 'auto' ? 'Theme: auto (system)' : 'Theme: manual'} aria-label="Toggle theme" aria-pressed={theme === 'light'} onClick={toggleTheme} className="h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0">
             {theme === 'light' ? (
-              // Moon icon for switching to dark
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="1.5" fill="none"/></svg>
+              <Moon size={16} />
             ) : (
-              // Sun icon for switching to light
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.66-7.66-1.41 1.41M7.76 16.24l-1.41 1.41m0-11.31 1.41 1.41m9.49 9.49 1.41 1.41" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <Sun size={16} />
             )}
           </button>
           <button aria-label="Open menu" className="md:hidden h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0" onClick={() => setOpen((v) => !v)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <MenuIcon size={16} />
           </button>
         </div>
       </div>

@@ -1,32 +1,32 @@
-export const metadata = {
-  title: "Products | Price War Store",
-};
+'use client';
 
-type Category = { _id?: string; label: string; slug: string; imageUrl?: string };
-import CategoryCard from "@/components/CategoryCard";
+import ProductCard from '@/components/ProductCard';
+import { useProducts } from '@/context/ProductsContext';
 
-export default async function ProductsPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/categories`, {
-    // In dev without NEXT_PUBLIC_BASE_URL, relative fetch works in Node runtime
-    cache: "no-store",
-    next: { revalidate: 0 },
-  }).catch(() => null as any);
-  let categories: Category[] = [];
-  try {
-    if (res?.ok) categories = await res.json();
-  } catch {}
+export default function ProductsPage() {
+  const { products } = useProducts();
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">All Products</h1>
-      <p className="text-white/70">Browse categories and featured deals.</p>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((c) => (
-          <CategoryCard key={c.slug} label={c.label} slug={c.slug} imageUrl={c.imageUrl} />
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">All Products</h1>
+        <p className="mt-2 text-lg text-white/70">
+          Explore our curated collection of high-quality goods, from everyday essentials to unique finds.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+        {products.map((product) => (
+          <ProductCard
+            key={product._id}
+            id={product._id}
+            name={product.name}
+            price={product.price}
+            imageUrl={product.imageUrl}
+            featured={product.featured}
+            description={product.description}
+          />
         ))}
-        {!categories.length && (
-          <div className="text-white/60">No categories yet. Add some in the Admin dashboard.</div>
-        )}
       </div>
     </div>
   );

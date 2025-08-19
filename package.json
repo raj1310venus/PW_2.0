@@ -3,19 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4002 --turbopack",
+    "dev": "next dev -p 4000 --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "lucide-react": "^0.539.0",
     "mongodb": "^6.18.0",
     "next": "15.4.6",
+    "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-simple-chatbot": "^0.6.1",
-    "styled-components": "^4.4.1"
+    "recharts": "^3.1.2",
+    "stripe": "^18.4.0",
+    "styled-components": "^4.4.1",
+    "twilio": "^5.8.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

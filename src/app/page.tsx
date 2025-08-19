@@ -3,9 +3,11 @@ import Image from "next/image";
 import { headers } from "next/headers";
 import { categories } from "@/lib/catalog";
 import HeroCarousel from "@/components/HeroCarousel";
+import LoopGrid from "@/components/LoopGrid";
 import ProductCard from "@/components/ProductCard";
 import ChatbotLoader from '@/components/ChatbotLoader';
 import { MapPin, Phone, Mail, Sparkles } from 'lucide-react';
+import DealsBannerStrip from "@/components/DealsBannerStrip";
 
 async function fetchSection(params: { category?: string; featured?: boolean; limit?: number }) {
   const sp = new URLSearchParams();
@@ -113,6 +115,26 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Limited-time Offers: horizontally looping grid */}
+      <section>
+        <LoopGrid
+          title="Limited-time Offers"
+          items={(clearance.length ? clearance : Array.from({ length: 8 }).map((_, i) => ({
+            _id: `limited-${i}`,
+            name: `Limited Deal ${i + 1}`,
+            price: 9.99 + i,
+            imageUrl: sectionPlaceholders['default'],
+            slug: `limited-${i}`,
+          }))).map((p: any) => ({
+            id: String(p._id || p.slug || p.name),
+            name: p.name,
+            imageUrl: p.imageUrl,
+            price: p.price,
+            href: `/product/${p._id || p.slug || encodeURIComponent(p.name)}`,
+          }))}
+        />
+      </section>
+
       {/* Product Gallery */}
       <section id="gallery" className="space-y-4">
         <h2 className="text-2xl font-semibold">Product Gallery</h2>
@@ -165,6 +187,11 @@ export default async function Home() {
             <ProductCard key={p._id || p.slug || p.name} id={(p._id || p.slug || p.name) as string} name={p.name} price={p.price} imageUrl={p.imageUrl} featured={p.featured} description={p.description} />
           ))}
         </div>
+      </section>
+
+      {/* Horizontal Deals Banner after Trending Gadgets */}
+      <section className="-mt-2">
+        <DealsBannerStrip />
       </section>
 
       <section className="space-y-6">
@@ -261,8 +288,6 @@ export default async function Home() {
           ))}
         </div>
       </section>
-
-      <ChatbotLoader />
     </div>
   );
 }

@@ -1,48 +1,102 @@
 import { NextResponse } from "next/server";
 import { ProductRepo } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin";
+import { requireAdminServer } from "@/lib/admin";
 import { getCollection } from "@/lib/mongo";
+import type { Product } from "@/lib/types";
 
 export async function GET() {
-  const auth = requireAdmin();
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const col = await getCollection<any>("products");
-  if (col) {
-    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
-    return NextResponse.json(docs.map(d => ({ ...d, _id: String(d._id) })));
+  try {
+    const auth = requireAdminServer();
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
+    }
+
+    const col = await getCollection<Product>("products");
+    if (col) {
+      const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+      return NextResponse.json(docs.map(d => ({
+        ...d,
+        _id: String(d._id),
+        createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : new Date().toISOString(),
+        updatedAt: d.updatedAt ? new Date(d.updatedAt).toISOString() : new Date().toISOString()
+      })));
+    }
+    return NextResponse.json(ProductRepo.list());
+  } catch (error) {
+    console.error('Error in GET /api/admin/products:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-  return NextResponse.json(ProductRepo.list());
 }
 
 export async function POST(req: Request) {
-  const auth = requireAdmin();
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  try {
+    const auth = requireAdminServer();
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
+    }
 
-  const body = await req.json().catch(() => ({}));
-  const col = await getCollection<any>("products");
-  if (col) {
-    const doc: any = {
+    const body = await req.json().catch(() => ({}));
+    const col = await getCollection<Product>("products");
+    
+    const now = new Date().toISOString();
+    const newProduct = {
       name: String(body.name || "New Product"),
-      slug: String(body.slug || "prod-" + Math.random().toString(36).slice(2, 7)),
+      slug: String(body.slug || `prod-${Math.random().toString(36).slice(2, 7)}`),
       categorySlug: String(body.categorySlug || "uncategorized"),
       price: Number(body.price || 0),
-      imageUrl: body.imageUrl || undefined,
-      description: body.description || undefined,
+      imageUrl: body.imageUrl || '',
+      description: body.description || '',
       featured: Boolean(body.featured || false),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-    const res = await col.insertOne(doc);
-    return NextResponse.json({ ...doc, _id: String(res.insertedId) }, { status: 201 });
+
+    if (col) {
+      // Create a new document with all required fields
+      const productDoc = {
+        name: newProduct.name,
+        slug: newProduct.slug,
+        categorySlug: newProduct.categorySlug,
+        price: newProduct.price,
+        imageUrl: newProduct.imageUrl,
+        description: newProduct.description,
+        featured: newProduct.featured,
+        createdAt: newProduct.createdAt,
+        updatedAt: newProduct.updatedAt
+      };
+      
+      // Insert the document
+      const result = await col.insertOne(productDoc as any);
+      
+      // Return the created product with the generated _id
+      return NextResponse.json(
+        { ...newProduct, _id: String(result.insertedId) },
+        { status: 201 }
+      );
+    }
+
+    // Fallback to in-memory storage
+    const created = ProductRepo.create({
+      name: newProduct.name,
+      slug: newProduct.slug,
+      categorySlug: newProduct.categorySlug,
+      price: newProduct.price,
+      imageUrl: newProduct.imageUrl,
+      description: newProduct.description,
+      featured: newProduct.featured,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    console.error('Error in POST /api/admin/products:', error);
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    );
   }
-  const created = ProductRepo.create({
-    name: body.name,
-    slug: body.slug,
-    categorySlug: body.categorySlug,
-    price: body.price,
-    imageUrl: body.imageUrl,
-    description: body.description,
-    featured: body.featured,
-  });
-  return NextResponse.json(created, { status: 201 });
 }

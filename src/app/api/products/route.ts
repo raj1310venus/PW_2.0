@@ -1,6 +1,59 @@
 import { NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongo";
 import { ProductRepo } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin";
+
+export async function POST(req: Request) {
+  const adminCheck = requireAdmin();
+  if (!adminCheck.ok) {
+    return new Response(adminCheck.error, { status: adminCheck.status });
+  }
+
+  try {
+    const body = await req.json();
+    const { name, slug, price, description, imageUrl, categorySlug, featured } = body;
+
+    if (!name || !price || !categorySlug) {
+      return new Response("Missing required fields", { status: 400 });
+    }
+
+    const newProduct = {
+      name,
+      slug: slug || name.toLowerCase().replace(/ /g, "-"),
+      price,
+      description,
+      imageUrl,
+      categorySlug,
+      featured: featured || false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Try to save to MongoDB first
+    const col = await getCollection<any>("products");
+    if (col) {
+      const result = await col.insertOne(newProduct);
+      const savedProduct = { ...newProduct, _id: String(result.insertedId) };
+      console.log("Product saved to MongoDB:", savedProduct);
+      return NextResponse.json(savedProduct, { status: 201 });
+    }
+
+    // Fallback to ProductRepo if MongoDB is not available
+    const productWithId = {
+      ...newProduct,
+      _id: `prod_${new Date().getTime()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    ProductRepo.create(productWithId);
+    console.log("Product saved to ProductRepo:", productWithId);
+
+    return NextResponse.json(productWithId, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create product:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -40,3 +93,4 @@ export async function GET(req: Request) {
   if (limit) filtered = filtered.slice(0, limit);
   return NextResponse.json(filtered);
 }
+

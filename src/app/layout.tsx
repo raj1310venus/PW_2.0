@@ -5,8 +5,13 @@ import Script from "next/script";
 import MainNav from "@/components/MainNav";
 import RouteTransition from "@/components/RouteTransition";
 import PromoStrip from "@/components/PromoStrip";
+import ChatbotLoader from '@/components/ChatbotLoader';
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
+import { DealsProvider } from "@/context/DealsContext";
+import { ProductsProvider } from '@/context/ProductsContext';
+import { initialDeals } from '@/lib/initial-data';
+import AuthProvider from "@/components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,7 +69,10 @@ export default function RootLayout({
             }
           }catch(e){}})();`}
         </Script>
-        <CartProvider>
+        <AuthProvider>
+          <DealsProvider initialDeals={initialDeals}>
+            <ProductsProvider>
+              <CartProvider>
           <header className="sticky top-0 z-30">
             <PromoStrip />
             <MainNav />
@@ -91,9 +99,13 @@ export default function RootLayout({
                 <p className="text-white/70">(123) 456-7890 • info@pricewarstore.com</p>
               </div>
             </div>
-            <div className="text-center text-xs text-white/50 pb-6">© {new Date().getFullYear()} Price War Store</div>
+            <div className="text-center text-xs text-white/50 pb-6"> {new Date().getFullYear()} Price War Store</div>
           </footer>
-        </CartProvider>
+          <ChatbotLoader />
+              </CartProvider>
+            </ProductsProvider>
+          </DealsProvider>
+        </AuthProvider>
       </body>
     </html>
   );
