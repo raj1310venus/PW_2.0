@@ -26,27 +26,34 @@ function getCookie(name: string): string | undefined {
 }
 
 // Server-side admin check for API routes
-export function requireAdminServer() {
+export async function requireAdminServer(): Promise<
+  | { ok: true }
+  | { ok: false; status: number; error: string }
+> {
   if (typeof window !== 'undefined') {
     throw new Error('This function should only be used in server components or API routes');
   }
-  
-  // This function should be called from server components or API routes
-  // where cookies() from next/headers is available
+
   try {
-    // @ts-ignore - This is a dynamic import that only works in server components
-    const { cookies } = require('next/headers');
-    const cookieStore = cookies();
-    const token = cookieStore.get('admin_token')?.value;
+    // Dynamic ESM import to avoid bundling server-only module on client
+    const mod = await import('next/headers');
+    type HeadersMinimal = { get(name: string): string | null };
+    const h = (await Promise.resolve(mod.headers())) as unknown as HeadersMinimal;
+    const cookieHeader: string = h.get('cookie') ?? '';
+    const token = cookieHeader
+      .split(';')
+      .map((s: string) => s.trim())
+      .find((p: string) => p.startsWith('admin_token='))
+      ?.split('=')[1];
     const envToken = process.env.ADMIN_TOKEN || 'dev';
-    
+
     if (!token || token !== envToken) {
-      return { ok: false as const, status: 401, error: 'Unauthorized' };
+      return { ok: false, status: 401, error: 'Unauthorized' } as const;
     }
-    
-    return { ok: true as const };
+
+    return { ok: true } as const;
   } catch (error) {
     console.error('Error in requireAdminServer:', error);
-    return { ok: false as const, status: 500, error: 'Server error' };
+    return { ok: false, status: 500, error: 'Server error' } as const;
   }
 }

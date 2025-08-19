@@ -1,7 +1,7 @@
 // Optional MongoDB connector. Falls back to undefined if MONGODB_URI is not set
 // or if the 'mongodb' package is not installed yet.
 
-import type { MongoClient, Db, Collection } from "mongodb";
+import type { MongoClient, Db, Collection, Document } from "mongodb";
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
@@ -12,7 +12,7 @@ export async function getMongoDb(): Promise<Db | null> {
   if (!uri) return null;
   try {
     if (!cachedClient) {
-      const mod = (await import("mongodb")) as any;
+      const mod = (await import("mongodb")) as typeof import("mongodb");
       const { MongoClient: MC } = mod;
       cachedClient = new MC(uri, { ignoreUndefined: true });
       await cachedClient.connect();
@@ -25,7 +25,7 @@ export async function getMongoDb(): Promise<Db | null> {
   }
 }
 
-export async function getCollection<T = any>(name: string): Promise<Collection<T> | null> {
+export async function getCollection<T extends Document = Document>(name: string): Promise<Collection<T> | null> {
   const db = await getMongoDb();
-  return db ? (db.collection(name) as Collection<T>) : null;
+  return db ? db.collection<T>(name) : null;
 }

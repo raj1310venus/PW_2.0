@@ -1,4 +1,5 @@
 import { Category, Product } from "./types";
+import { randomUUID } from "crypto";
 
 // Simple in-memory fallback store. Replace later with MongoDB.
 // Data lives across requests during the same server runtime via global.
@@ -21,8 +22,7 @@ function uuid() {
   // node >= 19 exposes crypto.randomUUID
   // fallback for older environments
   try {
-    // @ts-ignore
-    return crypto.randomUUID();
+    return typeof randomUUID === 'function' ? randomUUID() : (Math.random().toString(36).slice(2) + Date.now().toString(36));
   } catch {
     return Math.random().toString(36).slice(2) + Date.now().toString(36);
   }

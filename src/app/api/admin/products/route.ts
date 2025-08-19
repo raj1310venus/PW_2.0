@@ -6,7 +6,7 @@ import type { Product } from "@/lib/types";
 
 export async function GET() {
   try {
-    const auth = requireAdminServer();
+    const auth = await requireAdminServer();
     if (!auth.ok) {
       return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
@@ -33,7 +33,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const auth = requireAdminServer();
+    const auth = await requireAdminServer();
     if (!auth.ok) {
       return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
