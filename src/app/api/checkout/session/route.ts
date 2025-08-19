@@ -3,13 +3,12 @@ import Stripe from "stripe";
 import { getCollection } from "@/lib/mongo";
 import type { Order, OrderItem } from "@/lib/types";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-
 export async function POST(req: NextRequest) {
   try {
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: "Stripe is not configured" }, { status: 500 });
     }
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const body = await req.json();
     const items: OrderItem[] = body?.items || [];
@@ -83,8 +82,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error("Create checkout session error", err?.message || err, err);
-    return NextResponse.json({ error: err?.message || "Internal error" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = typeof err === 'object' && err && 'message' in err ? String((err as any).message) : String(err);
+    console.error("Create checkout session error", msg, err);
+    return NextResponse.json({ error: msg || "Internal error" }, { status: 500 });
   }
 }
