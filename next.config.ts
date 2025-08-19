@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
+const isGhPages = process.env.GITHUB_PAGES === "true";
+
 const nextConfig: NextConfig = {
+  // When building for GitHub Pages, export a static site under the project base path
+  ...(isGhPages
+    ? {
+        output: "export",
+        basePath: "/PW_2.0",
+        assetPrefix: "/PW_2.0/",
+        trailingSlash: true,
+      }
+    : {}),
   images: {
+    // Disable image optimization for static export to avoid dynamic loader requirements
+    ...(isGhPages ? { unoptimized: true } : {}),
     remotePatterns: [
       // Google Maps / Photos / User Content hosts
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
@@ -16,6 +29,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
       { protocol: "https", hostname: "source.unsplash.com" },
+      // Additional hosts present in next.config.mjs to keep parity
+      { protocol: "https", hostname: "i.pravatar.cc" },
     ],
   },
 };
