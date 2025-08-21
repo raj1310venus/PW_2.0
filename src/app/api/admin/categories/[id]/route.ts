@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { CategoryRepo } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin";
+import { requireAdminServer } from "@/lib/admin";
 import { getCollection } from "@/lib/mongo";
 import { ObjectId } from "mongodb";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireAdmin();
+  const auth = await requireAdminServer();
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const body = await req.json().catch(() => ({}));
@@ -31,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const auth = requireAdmin();
+  const auth = await requireAdminServer();
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   const col = await getCollection<any>("categories");
   if (col) {

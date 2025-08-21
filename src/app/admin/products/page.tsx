@@ -22,6 +22,9 @@ export default function AdminProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const [filterCat, setFilterCat] = useState<string>("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
 
   const [form, setForm] = useState({
     name: "",
@@ -51,6 +54,98 @@ export default function AdminProductsPage() {
     };
     load();
   }, [admin.ok]);
+
+  // Derived: filtered list by category
+  const filteredItems = useMemo(() => {
+    if (!filterCat) return items;
+    return items.filter((it: any) => String(it.categorySlug) === String(filterCat));
+  }, [items, filterCat]);
+
+  // Cloudinary unsigned upload support (optional)
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const canUpload = !!cloudName && !!uploadPreset;
+
+  const uploadImage = async (file: File, onUrl: (u: string) => void) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset as string);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    onUrl(String(data.secure_url || data.url));
+  };
+
+  // Inline edit helpers
+  const startEdit = (row: any) => {
+    const id = String(row._id || row.slug || "");
+    setEditingId(id);
+    setEditForm({
+      name: row.name || "",
+      slug: row.slug || "",
+      categorySlug: row.categorySlug || CATEGORY_OPTIONS[0].slug,
+      price: String(row.price ?? ""),
+      imageUrl: row.imageUrl || "",
+      description: row.description || "",
+      featured: !!row.featured,
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
+  };
+
+  const saveEdit = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const payload = {
+        name: String(editForm.name || "").trim(),
+        slug: (editForm.slug ? String(editForm.slug).trim() : undefined) as string | undefined,
+        categorySlug: String(editForm.categorySlug || ""),
+        price: Number(editForm.price) || 0,
+        imageUrl: editForm.imageUrl ? String(editForm.imageUrl).trim() : undefined,
+        description: editForm.description ? String(editForm.description).trim() : undefined,
+        featured: !!editForm.featured,
+      };
+      const res = await fetch(`/api/admin/products/${id}` ,{
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const updated = await res.json();
+      setItems((prev) => prev.map((it: any) => (String(it._id || it.slug) === String(id) ? updated : it)));
+      setSuccess("Product updated");
+      cancelEdit();
+    } catch (e: any) {
+      setError(e?.message || "Failed to update product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeItem = async (id: string) => {
+    if (typeof window !== "undefined" && !window.confirm("Delete this product?")) return;
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      setItems((prev) => prev.filter((it: any) => String(it._id || it.slug) !== String(id)));
+      setSuccess("Product deleted");
+    } catch (e: any) {
+      setError(e?.message || "Failed to delete product");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +227,31 @@ export default function AdminProductsPage() {
         </div>
         <div className="sm:col-span-2">
           <label className="block text-sm mb-1">Image URL</label>
-          <input className="input" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
+          <div className="flex gap-2">
+            <input className="input flex-1" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
+            {canUpload && (
+              <label className="btn-secondary shrink-0 cursor-pointer">
+                Upload
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    try {
+                      setLoading(true);
+                      await uploadImage(f, (u) => setForm((prev) => ({ ...prev, imageUrl: u })));
+                    } catch (err: any) {
+                      setError(err?.message || "Upload failed");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                />
+              </label>
+            )}
+          </div>
         </div>
         <div className="sm:col-span-2 md:col-span-3">
           <label className="block text-sm mb-1">Description</label>
@@ -150,7 +269,18 @@ export default function AdminProductsPage() {
       </form>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Existing products</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <h2 className="text-xl font-semibold">Existing products</h2>
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Filter:</label>
+            <select className="input" value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
+              <option value="">All</option>
+              {CATEGORY_OPTIONS.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-white/70">
@@ -159,20 +289,60 @@ export default function AdminProductsPage() {
                 <th className="py-2 pr-3">Category</th>
                 <th className="py-2 pr-3">Price</th>
                 <th className="py-2 pr-3">Updated</th>
+                <th className="py-2 pr-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((it) => (
-                <tr key={it._id || it.slug} className="border-t border-white/10">
-                  <td className="py-2 pr-3">{it.name}</td>
-                  <td className="py-2 pr-3">{it.categorySlug}</td>
-                  <td className="py-2 pr-3">${((it.price || 0) / 100).toFixed(2)}</td>
-                  <td className="py-2 pr-3">{it.updatedAt}</td>
-                </tr>
-              ))}
+              {filteredItems.map((it) => {
+                const id = String(it._id || it.slug);
+                const isEditing = editingId === id;
+                return (
+                  <tr key={id} className="border-t border-white/10 align-top">
+                    <td className="py-2 pr-3">
+                      {isEditing ? (
+                        <input className="input" value={editForm.name || ""} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                      ) : (
+                        it.name
+                      )}
+                    </td>
+                    <td className="py-2 pr-3">
+                      {isEditing ? (
+                        <select className="input" value={editForm.categorySlug || CATEGORY_OPTIONS[0].slug} onChange={(e) => setEditForm({ ...editForm, categorySlug: e.target.value })}>
+                          {CATEGORY_OPTIONS.map((c) => (
+                            <option key={c.slug} value={c.slug}>{c.label}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        it.categorySlug
+                      )}
+                    </td>
+                    <td className="py-2 pr-3">
+                      {isEditing ? (
+                        <input className="input" type="number" value={editForm.price || ""} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+                      ) : (
+                        `$${((it.price || 0) / 100).toFixed(2)}`
+                      )}
+                    </td>
+                    <td className="py-2 pr-3">{it.updatedAt}</td>
+                    <td className="py-2 pr-3">
+                      {isEditing ? (
+                        <div className="flex gap-2">
+                          <button className="btn-accent" onClick={() => saveEdit(id)} disabled={loading}>Save</button>
+                          <button className="btn-secondary" onClick={cancelEdit} type="button">Cancel</button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button className="btn-secondary" onClick={() => startEdit(it)} type="button">Edit</button>
+                          <button className="btn-secondary" onClick={() => removeItem(id)} type="button">Delete</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {items.length === 0 && (
                 <tr>
-                  <td className="py-3 text-white/60" colSpan={4}>No products yet.</td>
+                  <td className="py-3 text-white/60" colSpan={5}>No products yet.</td>
                 </tr>
               )}
             </tbody>
