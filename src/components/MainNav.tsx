@@ -126,10 +126,17 @@ export default function MainNav() {
     setTheme(next);
   };
 
-  const NavLinks = ({ className = "" }: { className?: string }) => {
+  type NavLinksProps = { className?: string; variant?: "desktop" | "mobile" };
+  const NavLinks = ({ className = "", variant = "desktop" }: NavLinksProps) => {
     const pathname = usePathname();
     return (
-      <nav className={`hidden md:flex items-center gap-1 ${className}`}>
+      <nav
+        className={`${
+          variant === "desktop"
+            ? "hidden md:flex items-center gap-1"
+            : "flex flex-col"
+        } ${className}`}
+      >
         {links.map((l) => {
           const active = pathname === l.href;
           const Icon =
@@ -143,7 +150,9 @@ export default function MainNav() {
             <Link
               key={l.href}
               href={l.href}
-              className={`relative px-3 py-2 rounded-md text-sm transition-colors group ${
+              className={`relative rounded-md transition-colors group ${
+                variant === "desktop" ? "px-3 py-2 text-sm" : "px-2 py-2 text-base"
+              } ${
                 active
                   ? "text-[var(--foreground)]"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -153,13 +162,15 @@ export default function MainNav() {
                 <Icon className="h-4 w-4" />
                 {l.label}
               </span>
-              <span
-                className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-accent transition-all duration-300 ease-out ${
-                  active
-                    ? "w-[calc(100%-1.5rem)]"
-                    : "w-0 group-hover:w-[calc(100%-1.5rem)]"
-                }`}
-              />
+              {variant === "desktop" && (
+                <span
+                  className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-accent transition-all duration-300 ease-out ${
+                    active
+                      ? "w-[calc(100%-1.5rem)]"
+                      : "w-0 group-hover:w-[calc(100%-1.5rem)]"
+                  }`}
+                />
+              )}
             </Link>
           );
         })}
@@ -168,7 +179,7 @@ export default function MainNav() {
   };
 
   return (
-    <div className={`border-b border-white/10 bg-[var(--surface)] backdrop-blur ${scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.25)]" : ""}`}>
+    <div className={`sticky top-0 z-50 border-b border-white/10 bg-[var(--surface)] backdrop-blur ${scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.25)]" : ""}`}>
       <div className="mx-auto max-w-6xl px-4 py-3 grid items-center gap-3 md:gap-4" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
         {/* Left: Logo */}
         <div className="justify-self-start shrink-0">
@@ -300,13 +311,18 @@ export default function MainNav() {
               <Sun size={16} />
             )}
           </button>
-          <button aria-label="Open menu" className="md:hidden h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0" onClick={() => setOpen((v) => !v)}>
-            <MenuIcon size={16} />
+          <button
+            aria-label="Open menu"
+            aria-expanded={open}
+            className="md:hidden h-8 w-8 grid place-items-center rounded-md bg-black/20 border border-white/10 shrink-0"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X size={16} /> : <MenuIcon size={16} />}
           </button>
         </div>
       </div>
 
-      {/* Category strip */}
+      {/* Category strip (desktop) */}
       <div className="mx-auto max-w-6xl px-4 pb-2 hidden md:block">
         <nav className="flex items-center gap-4 text-sm overflow-x-auto no-scrollbar min-w-0">
           {categoryLinks.map((c) => (
@@ -321,6 +337,21 @@ export default function MainNav() {
         </nav>
       </div>
 
+      {/* Category strip (mobile) */}
+      <div className="mx-auto max-w-6xl px-4 pb-2 md:hidden">
+        <nav className="flex items-center gap-3 text-sm overflow-x-auto no-scrollbar min-w-0">
+          {categoryLinks.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="text-[var(--muted)] shrink-0 px-2 py-1 rounded border border-white/10 hover:text-[var(--accent)] hover:bg-white/5 transition-colors"
+            >
+              {c.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
       {/* Mobile menu (animated collapse) */}
       <div
         className={`md:hidden border-t border-white/10 px-4 transition-all duration-300 ease-out overflow-hidden ${
@@ -328,7 +359,7 @@ export default function MainNav() {
         }`}
         aria-hidden={!open}
       >
-        <NavLinks className="flex flex-col gap-4 pt-3" />
+        <NavLinks className="gap-2 pt-3" variant="mobile" />
       </div>
     </div>
   );
