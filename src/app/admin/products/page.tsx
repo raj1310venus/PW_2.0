@@ -25,6 +25,10 @@ export default function AdminProductsPage() {
   const [filterCat, setFilterCat] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [confirm, setConfirm] = useState<{ open: boolean; ids: string[]; message: string }>({ open: false, ids: [], message: "" });
 
   const [form, setForm] = useState({
     name: "",
@@ -60,6 +64,14 @@ export default function AdminProductsPage() {
     if (!filterCat) return items;
     return items.filter((it: any) => String(it.categorySlug) === String(filterCat));
   }, [items, filterCat]);
+
+  // Pagination derived
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredItems.length / pageSize)), [filteredItems.length]);
+  const pagedItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, page]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [totalPages, page]);
 
   // Cloudinary unsigned upload support (optional)
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -130,21 +142,30 @@ export default function AdminProductsPage() {
     }
   };
 
-  const removeItem = async (id: string) => {
-    if (typeof window !== "undefined" && !window.confirm("Delete this product?")) return;
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+  const doDelete = async (ids: string[]) => {
+    setLoading(true); setError(null); setSuccess(null);
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(await res.text());
-      setItems((prev) => prev.filter((it: any) => String(it._id || it.slug) !== String(id)));
-      setSuccess("Product deleted");
+      for (const id of ids) {
+        const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(await res.text());
+      }
+      setItems((prev) => prev.filter((it: any) => !ids.includes(String(it._id || it.slug))));
+      setSelected([]);
+      setSuccess(ids.length > 1 ? "Products deleted" : "Product deleted");
     } catch (e: any) {
       setError(e?.message || "Failed to delete product");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); setConfirm({ open: false, ids: [], message: "" }); }
+  };
+  const confirmDelete = (ids: string[]) => {
+    setConfirm({ open: true, ids, message: ids.length > 1 ? `Delete ${ids.length} products?` : "Delete this product?" });
+  };
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+  const toggleSelectAllCurrentPage = () => {
+    const ids = pagedItems.map((it) => String(it._id || it.slug));
+    const allSelected = ids.every((id) => selected.includes(id));
+    setSelected((prev) => (allSelected ? prev.filter((id) => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -203,6 +224,19 @@ export default function AdminProductsPage() {
         <h1 className="text-2xl font-semibold mb-2">Products</h1>
         <p className="text-white/70">Create products for any of your categories.</p>
       </div>
+
+      {confirm.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-zinc-900 p-5 rounded-md w-full max-w-sm space-y-4">
+            <h3 className="text-lg font-semibold">Confirm</h3>
+            <p className="text-white/80">{confirm.message}</p>
+            <div className="flex gap-2 justify-end">
+              <button className="btn-secondary" onClick={() => setConfirm({ open: false, ids: [], message: '' })} type="button">Cancel</button>
+              <button className="btn-accent" onClick={() => doDelete(confirm.ids)} type="button" disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         <div className="sm:col-span-2">
@@ -271,20 +305,35 @@ export default function AdminProductsPage() {
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <h2 className="text-xl font-semibold">Existing products</h2>
-          <div className="flex items-center gap-2">
-            <label className="text-sm">Filter:</label>
-            <select className="input" value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
-              <option value="">All</option>
-              {CATEGORY_OPTIONS.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.label}</option>
-              ))}
-            </select>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Filter:</label>
+              <select className="input" value={filterCat} onChange={(e) => { setFilterCat(e.target.value); setPage(1); }}>
+                <option value="">All</option>
+                {CATEGORY_OPTIONS.map((c) => (
+                  <option key={c.slug} value={c.slug}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+            {selected.length > 0 && (
+              <button className="btn-secondary" type="button" onClick={() => confirmDelete(selected)} disabled={loading}>
+                Delete selected ({selected.length})
+              </button>
+            )}
+            <div className="text-sm text-white/70">Page {page} / {totalPages}</div>
+            <div className="flex gap-2">
+              <button className="btn-secondary" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
+              <button className="btn-secondary" type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</button>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-white/70">
               <tr>
+                <th className="py-2 pr-3">
+                  <input type="checkbox" onChange={toggleSelectAllCurrentPage} checked={pagedItems.length > 0 && pagedItems.every((it) => selected.includes(String(it._id || it.slug)))} />
+                </th>
                 <th className="py-2 pr-3">Name</th>
                 <th className="py-2 pr-3">Category</th>
                 <th className="py-2 pr-3">Price</th>
@@ -293,11 +342,14 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((it) => {
+              {pagedItems.map((it) => {
                 const id = String(it._id || it.slug);
                 const isEditing = editingId === id;
                 return (
                   <tr key={id} className="border-t border-white/10 align-top">
+                    <td className="py-2 pr-3">
+                      <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
+                    </td>
                     <td className="py-2 pr-3">
                       {isEditing ? (
                         <input className="input" value={editForm.name || ""} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
@@ -333,7 +385,7 @@ export default function AdminProductsPage() {
                       ) : (
                         <div className="flex gap-2">
                           <button className="btn-secondary" onClick={() => startEdit(it)} type="button">Edit</button>
-                          <button className="btn-secondary" onClick={() => removeItem(id)} type="button">Delete</button>
+                          <button className="btn-secondary" onClick={() => confirmDelete([id])} type="button">Delete</button>
                         </div>
                       )}
                     </td>
@@ -342,7 +394,7 @@ export default function AdminProductsPage() {
               })}
               {items.length === 0 && (
                 <tr>
-                  <td className="py-3 text-white/60" colSpan={5}>No products yet.</td>
+                  <td className="py-3 text-white/60" colSpan={6}>No products yet.</td>
                 </tr>
               )}
             </tbody>

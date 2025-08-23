@@ -12,6 +12,12 @@ export default function AdminCategoriesPage() {
   const [items, setItems] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [confirm, setConfirm] = useState<{ open: boolean; ids: string[]; message: string }>(
+    { open: false, ids: [], message: "" }
+  );
 
   const [form, setForm] = useState({
     label: "",
@@ -35,6 +41,17 @@ export default function AdminCategoriesPage() {
     };
     load();
   }, [admin.ok]);
+
+  // Pagination derived values
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / pageSize)), [items.length]);
+  const pagedItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [items, page]);
+  useEffect(() => {
+    // clamp page when items change
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
   // Cloudinary unsigned upload support for category image (optional)
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -75,17 +92,30 @@ export default function AdminCategoriesPage() {
       setError(e?.message || "Failed to update category");
     } finally { setLoading(false); }
   };
-  const removeItem = async (id: string) => {
-    if (typeof window !== 'undefined' && !window.confirm('Delete this category?')) return;
+  const doDelete = async (ids: string[]) => {
     setLoading(true); setError(null); setSuccess(null);
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(await res.text());
-      setItems((prev) => prev.filter((it: any) => String(it._id || it.slug) !== String(id)));
-      setSuccess('Category deleted');
+      for (const id of ids) {
+        const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+      }
+      setItems((prev) => prev.filter((it: any) => !ids.includes(String(it._id || it.slug))));
+      setSelected([]);
+      setSuccess(ids.length > 1 ? 'Categories deleted' : 'Category deleted');
     } catch (e: any) {
       setError(e?.message || 'Failed to delete category');
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setConfirm({ open: false, ids: [], message: '' }); }
+  };
+  const confirmDelete = (ids: string[]) => {
+    setConfirm({ open: true, ids, message: ids.length > 1 ? `Delete ${ids.length} categories?` : 'Delete this category?' });
+  };
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+  const toggleSelectAllCurrentPage = () => {
+    const ids = pagedItems.map((it) => String(it._id || it.slug));
+    const allSelected = ids.every((id) => selected.includes(id));
+    setSelected((prev) => (allSelected ? prev.filter((id) => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -133,6 +163,19 @@ export default function AdminCategoriesPage() {
         <p className="text-white/70">Create and view categories.</p>
       </div>
 
+      {confirm.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-zinc-900 p-5 rounded-md w-full max-w-sm space-y-4">
+            <h3 className="text-lg font-semibold">Confirm</h3>
+            <p className="text-white/80">{confirm.message}</p>
+            <div className="flex gap-2 justify-end">
+              <button className="btn-secondary" onClick={() => setConfirm({ open: false, ids: [], message: '' })} type="button">Cancel</button>
+              <button className="btn-accent" onClick={() => doDelete(confirm.ids)} type="button" disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         <div className="sm:col-span-2">
           <label className="block text-sm mb-1">Label</label>
@@ -167,11 +210,28 @@ export default function AdminCategoriesPage() {
       </form>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Existing categories</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-semibold">Existing categories</h2>
+          <div className="flex items-center gap-2">
+            {selected.length > 0 && (
+              <button className="btn-secondary" type="button" onClick={() => confirmDelete(selected)} disabled={loading}>
+                Delete selected ({selected.length})
+              </button>
+            )}
+            <div className="text-sm text-white/70">Page {page} / {totalPages}</div>
+            <div className="flex gap-2">
+              <button className="btn-secondary" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
+              <button className="btn-secondary" type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</button>
+            </div>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-white/70">
               <tr>
+                <th className="py-2 pr-3">
+                  <input type="checkbox" onChange={toggleSelectAllCurrentPage} checked={pagedItems.length > 0 && pagedItems.every((it) => selected.includes(String(it._id || it.slug)))} />
+                </th>
                 <th className="py-2 pr-3">Label</th>
                 <th className="py-2 pr-3">Slug</th>
                 <th className="py-2 pr-3">Updated</th>
@@ -179,11 +239,14 @@ export default function AdminCategoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((it) => {
+              {pagedItems.map((it) => {
                 const id = String(it._id || it.slug);
                 const isEditing = editingId === id;
                 return (
                   <tr key={id} className="border-t border-white/10 align-top">
+                    <td className="py-2 pr-3">
+                      <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
+                    </td>
                     <td className="py-2 pr-3">
                       {isEditing ? (
                         <input className="input" value={editForm.label || ''} onChange={(e) => setEditForm({ ...editForm, label: e.target.value })} />
@@ -208,7 +271,7 @@ export default function AdminCategoriesPage() {
                       ) : (
                         <div className="flex gap-2">
                           <button className="btn-secondary" onClick={() => startEdit(it)} type="button">Edit</button>
-                          <button className="btn-secondary" onClick={() => removeItem(id)} type="button">Delete</button>
+                          <button className="btn-secondary" onClick={() => confirmDelete([id])} type="button">Delete</button>
                         </div>
                       )}
                     </td>
