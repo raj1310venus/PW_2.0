@@ -42,6 +42,16 @@ body {
   transition: background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
+/* Theme-aware border color helper */
+.border-token {
+  border-color: color-mix(in oklab, var(--foreground) 12%, transparent) !important;
+}
+
+/* Theme-aware muted text helper */
+.text-muted-token {
+  color: color-mix(in oklab, var(--foreground) 72%, transparent) !important;
+}
+
 .btn-accent {
   background: var(--accent);
   color: #1a1a1a;

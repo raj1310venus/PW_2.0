@@ -84,22 +84,22 @@ export default function RootLayout({
             </RouteTransition>
           </main>
 
-          <footer className="mt-12 border-t border-white/10 bg-[var(--surface)]">
+          <footer className="mt-12 border-t border-token bg-[var(--surface)]">
             <div className="mx-auto max-w-6xl px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
               <div>
                 <div className="font-semibold mb-2">Price War Store</div>
-                <p className="text-white/70">Delivering affordable essentials with style and convenience.</p>
+                <p className="text-muted-token">Delivering affordable essentials with style and convenience.</p>
               </div>
               <div>
                 <div className="font-semibold mb-2">Visit Us</div>
-                <p className="text-white/70">644 Danforth Ave & Pape Ave, Toronto, ON</p>
+                <p className="text-muted-token">644 Danforth Ave & Pape Ave, Toronto, ON</p>
               </div>
               <div>
                 <div className="font-semibold mb-2">Contact</div>
-                <p className="text-white/70">(123) 456-7890 • info@pricewarstore.com</p>
+                <p className="text-muted-token">(123) 456-7890 • info@pricewarstore.com</p>
               </div>
             </div>
-            <div className="text-center text-xs text-white/50 pb-6"> {new Date().getFullYear()} Price War Store</div>
+            <div className="text-center text-xs text-muted-token pb-6"> {new Date().getFullYear()} Price War Store</div>
           </footer>
           <ChatbotLoader />
               </CartProvider>
