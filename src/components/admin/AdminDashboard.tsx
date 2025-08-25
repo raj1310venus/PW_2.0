@@ -793,7 +793,7 @@ export default function AdminDashboard() {
       <TopNav />
       
       <main className="ml-64 pt-12 p-4">
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="w-full space-y-4">
           {renderSection()}
         </div>
       </main>
