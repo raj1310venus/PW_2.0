@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, slug, price, description, imageUrl, categorySlug, featured } = body;
+    const { name, slug, price, description, imageUrl, categorySlug, featured, limitedTime } = body;
 
     if (!name || !price || !categorySlug) {
       return new Response("Missing required fields", { status: 400 });
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       imageUrl,
       categorySlug,
       featured: featured || false,
+      limitedTime: !!limitedTime,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -61,13 +62,16 @@ export async function GET(req: Request) {
   const qText = (searchParams.get("q") || "").trim();
   const featuredParam = searchParams.get("featured");
   const limitParam = searchParams.get("limit");
+  const limitedTimeParam = searchParams.get("limitedTime");
   const featured = featuredParam === "1" || featuredParam === "true" ? true : undefined;
+  const limitedTime = limitedTimeParam === "1" || limitedTimeParam === "true" ? true : undefined;
   const limit = limitParam ? Math.max(1, Math.min(50, Number(limitParam))) : undefined;
   const col = await getCollection<any>("products");
   if (col) {
     const q: any = {};
     if (category) q.categorySlug = category;
     if (featured !== undefined) q.featured = featured;
+    if (limitedTime !== undefined) q.limitedTime = limitedTime;
     if (qText) {
       q.$or = [
         { name: { $regex: qText, $options: "i" } },
@@ -82,7 +86,8 @@ export async function GET(req: Request) {
   const list = ProductRepo.list();
   let filtered = list;
   if (category) filtered = filtered.filter(p => p.categorySlug === category);
-  if (featured !== undefined) filtered = filtered.filter(p => !!p.featured === featured);
+  if (featured !== undefined) filtered = filtered.filter(p => !!(p as any).featured === featured);
+  if (limitedTime !== undefined) filtered = filtered.filter(p => !!(p as any).limitedTime === limitedTime);
   if (qText) {
     const qLower = qText.toLowerCase();
     filtered = filtered.filter(p =>

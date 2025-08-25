@@ -16,6 +16,7 @@ export type Product = {
   imageUrl?: string;
   description?: string;
   featured?: boolean;
+  limitedTime?: boolean;
   createdAt: string;
   updatedAt: string;
 };

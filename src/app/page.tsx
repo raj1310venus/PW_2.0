@@ -9,10 +9,11 @@ import ChatbotLoader from '@/components/ChatbotLoader';
 import { MapPin, Phone, Mail, Sparkles } from 'lucide-react';
 import DealsBannerStrip from "@/components/DealsBannerStrip";
 
-async function fetchSection(params: { category?: string; featured?: boolean; limit?: number }) {
+async function fetchSection(params: { category?: string; featured?: boolean; limitedTime?: boolean; limit?: number }) {
   const sp = new URLSearchParams();
   if (params.category) sp.set("category", params.category);
   if (params.featured) sp.set("featured", "1");
+  if (params.limitedTime) sp.set("limitedTime", "1");
   if (params.limit) sp.set("limit", String(params.limit));
   const envBase = process.env.NEXT_PUBLIC_BASE_URL;
   let url: string;
@@ -41,13 +42,14 @@ export default async function Home() {
     'default': 'https://source.unsplash.com/1200x900/?product,item',
   };
   // Preload key sections in parallel for performance
-  const [gadgets, fashion, decor, furniture, clearance, souvenirs] = await Promise.all([
+  const [gadgets, fashion, decor, furniture, clearance, souvenirs, limited] = await Promise.all([
     fetchSection({ category: "household-appliances", featured: true, limit: 6 }),
     fetchSection({ category: "clothing", featured: true, limit: 6 }),
     fetchSection({ category: "bath-linen", featured: true, limit: 6 }),
     fetchSection({ category: "furniture", featured: true, limit: 6 }), // may be empty until added
     fetchSection({ featured: true, limit: 6 }),
     fetchSection({ category: "canada-souvenir", featured: true, limit: 6 }), // may be empty until added
+    fetchSection({ limitedTime: true, limit: 8 }),
   ]);
 
   return (
@@ -115,21 +117,22 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Limited-time Offers: horizontally looping grid */}
+      {/* Limited-time Offers: horizontally looping grid (admin-curated via limitedTime flag) */}
       <section>
         <LoopGrid
           title="Limited-time Offers"
-          items={(clearance.length ? clearance : Array.from({ length: 8 }).map((_, i) => ({
+          items={((limited && limited.length ? limited : (clearance.length ? clearance : Array.from({ length: 8 }).map((_, i) => ({
             _id: `limited-${i}`,
             name: `Limited Deal ${i + 1}`,
             price: 9.99 + i,
             imageUrl: sectionPlaceholders['default'],
             slug: `limited-${i}`,
-          }))).map((p: any) => ({
+          })))) as any[]).map((p: any) => ({
             id: String(p._id || p.slug || p.name),
             name: p.name,
             imageUrl: p.imageUrl,
-            price: p.price,
+            // map to dollars if numeric (API typically stores cents)
+            price: typeof p.price === 'number' ? (p.price > 1000 ? p.price / 100 : p.price) : undefined,
             href: `/product/${p._id || p.slug || encodeURIComponent(p.name)}`,
           }))}
         />

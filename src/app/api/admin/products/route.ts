@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       imageUrl: body.imageUrl || '',
       description: body.description || '',
       featured: Boolean(body.featured || false),
+      limitedTime: Boolean(body.limitedTime || false),
       createdAt: now,
       updatedAt: now,
     };
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
         imageUrl: newProduct.imageUrl,
         description: newProduct.description,
         featured: newProduct.featured,
+        limitedTime: newProduct.limitedTime,
         createdAt: newProduct.createdAt,
         updatedAt: newProduct.updatedAt
       };
@@ -87,6 +89,7 @@ export async function POST(req: Request) {
       imageUrl: newProduct.imageUrl,
       description: newProduct.description,
       featured: newProduct.featured,
+      limitedTime: newProduct.limitedTime,
       createdAt: now,
       updatedAt: now,
     });

@@ -38,6 +38,7 @@ export default function AdminProductsPage() {
     imageUrl: "",
     description: "",
     featured: false,
+    limitedTime: false,
   });
 
   const canSubmit = useMemo(() => {
@@ -103,6 +104,7 @@ export default function AdminProductsPage() {
       imageUrl: row.imageUrl || "",
       description: row.description || "",
       featured: !!row.featured,
+      limitedTime: !!row.limitedTime,
     });
   };
 
@@ -124,6 +126,7 @@ export default function AdminProductsPage() {
         imageUrl: editForm.imageUrl ? String(editForm.imageUrl).trim() : undefined,
         description: editForm.description ? String(editForm.description).trim() : undefined,
         featured: !!editForm.featured,
+        limitedTime: !!editForm.limitedTime,
       };
       const res = await fetch(`/api/admin/products/${id}` ,{
         method: "PATCH",
@@ -182,6 +185,7 @@ export default function AdminProductsPage() {
         imageUrl: form.imageUrl.trim() || undefined,
         description: form.description.trim() || undefined,
         featured: !!form.featured,
+        limitedTime: !!form.limitedTime,
       };
       const res = await fetch("/api/admin/products", {
         method: "POST",
@@ -200,6 +204,7 @@ export default function AdminProductsPage() {
         imageUrl: "",
         description: "",
         featured: false,
+        limitedTime: false,
       });
     } catch (e: any) {
       setError(e?.message || "Failed to create product");
@@ -295,6 +300,10 @@ export default function AdminProductsPage() {
           <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
           <span className="text-sm">Featured</span>
         </label>
+        <label className="inline-flex items-center gap-2">
+          <input type="checkbox" checked={form.limitedTime} onChange={(e) => setForm({ ...form, limitedTime: e.target.checked })} />
+          <span className="text-sm">Limited-time</span>
+        </label>
         <div className="sm:col-span-2 md:col-span-3 flex gap-2">
           <button className="btn-accent" type="submit" disabled={!canSubmit || loading}>{loading ? "Saving..." : "Save product"}</button>
           {error && <span className="text-red-400 text-sm">{error}</span>}
@@ -337,6 +346,7 @@ export default function AdminProductsPage() {
                 <th className="py-2 pr-3">Name</th>
                 <th className="py-2 pr-3">Category</th>
                 <th className="py-2 pr-3">Price</th>
+                <th className="py-2 pr-3">Limited-time</th>
                 <th className="py-2 pr-3">Updated</th>
                 <th className="py-2 pr-3">Actions</th>
               </tr>
@@ -373,6 +383,16 @@ export default function AdminProductsPage() {
                         <input className="input" type="number" value={editForm.price || ""} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
                       ) : (
                         `$${((it.price || 0) / 100).toFixed(2)}`
+                      )}
+                    </td>
+                    <td className="py-2 pr-3">
+                      {isEditing ? (
+                        <label className="inline-flex items-center gap-2">
+                          <input type="checkbox" checked={!!editForm.limitedTime} onChange={(e) => setEditForm({ ...editForm, limitedTime: e.target.checked })} />
+                          <span className="text-sm">Limited</span>
+                        </label>
+                      ) : (
+                        it.limitedTime ? "Yes" : "No"
                       )}
                     </td>
                     <td className="py-2 pr-3">{it.updatedAt}</td>
