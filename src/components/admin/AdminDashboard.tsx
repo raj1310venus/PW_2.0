@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useDeals } from "@/context/DealsContext";
+import DealsManager from "@/components/admin/DealsManager";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
@@ -686,10 +687,10 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Add New Category</h3>
               <div className="flex gap-4">
                 <input 
-                  placeholder="Category Name" 
+                  placeholder="Category Label" 
                   className="flex-1 input" 
-                  value={catForm.name} 
-                  onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} 
+                  value={catForm.label} 
+                  onChange={(e) => setCatForm({ ...catForm, label: e.target.value })} 
                 />
                 <input 
                   placeholder="Category Slug" 
@@ -778,70 +779,7 @@ export default function AdminDashboard() {
       case 'deals':
         return (
           <div className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Create New Deal</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input 
-                  placeholder="Deal Title" 
-                  className="input" 
-                  value={dealForm.title} 
-                  onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })} 
-                />
-                <input 
-                  placeholder="Category" 
-                  className="input" 
-                  value={dealForm.category} 
-                  onChange={(e) => setDealForm({ ...dealForm, category: e.target.value })} 
-                />
-                <input 
-                  placeholder="Expires (YYYY-MM-DD)" 
-                  className="input" 
-                  value={dealForm.expires} 
-                  onChange={(e) => setDealForm({ ...dealForm, expires: e.target.value })} 
-                />
-                <textarea 
-                  placeholder="Deal Description" 
-                  className="input md:col-span-2" 
-                  rows={3}
-                  value={dealForm.description} 
-                  onChange={(e) => setDealForm({ ...dealForm, description: e.target.value })} 
-                />
-              </div>
-              <button 
-                className="mt-4 btn-accent px-6 py-2 rounded-lg transition-colors" 
-                onClick={createDeal}
-              >
-                Create Deal
-              </button>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Active Deals ({deals.length})</h3>
-              <div className="space-y-3">
-                {deals.map((deal) => (
-                  <div key={deal._id} className="p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-[var(--foreground)]">{deal.title}</h4>
-                        <p className="text-sm text-[var(--muted)] mt-1">{deal.description}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-[var(--muted)]">
-                          <span>Category: {deal.category}</span>
-                          <span>Expires: {deal.expires}</span>
-                        </div>
-                      </div>
-                      <span className="bg-[var(--accent)]/20 text-[var(--accent)] px-2 py-1 rounded-full text-xs font-medium">
-                        Active
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                {deals.length === 0 && (
-                  <div className="text-center py-8 text-[var(--muted)]">
-                    No active deals. Create your first deal above.
-                  </div>
-                )}
-              </div>
-            </Card>
+            <DealsManager title="Admin • Limited-time Offers" />
           </div>
         );
       default:
@@ -857,75 +795,6 @@ export default function AdminDashboard() {
       <main className="ml-64 pt-16 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {renderSection()}
-          {activeSection === "deals" && (
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Create New Deal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Deal Title" 
-                    className="input" 
-                    value={dealForm.title} 
-                    onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })} 
-                  />
-                  <input 
-                    placeholder="Category" 
-                    className="input" 
-                    value={dealForm.category} 
-                    onChange={(e) => setDealForm({ ...dealForm, category: e.target.value })} 
-                  />
-                  <input 
-                    placeholder="Expires (YYYY-MM-DD)" 
-                    className="input" 
-                    value={dealForm.expires} 
-                    onChange={(e) => setDealForm({ ...dealForm, expires: e.target.value })} 
-                  />
-                  <textarea 
-                    placeholder="Deal Description" 
-                    className="input md:col-span-2" 
-                    rows={3}
-                    value={dealForm.description} 
-                    onChange={(e) => setDealForm({ ...dealForm, description: e.target.value })} 
-                  />
-                </div>
-                <button 
-                  className="mt-4 btn-accent px-6 py-2 rounded-lg transition-colors" 
-                  onClick={createDeal}
-                >
-                  Create Deal
-                </button>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Active Deals ({deals.length})</h3>
-                <div className="space-y-3">
-                  {deals.map((deal) => (
-                    <div key={deal._id} className="p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-[var(--foreground)]">{deal.title}</h4>
-                          <p className="text-sm text-[var(--muted)] mt-1">{deal.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-[var(--muted)]">
-                            <span>Category: {deal.category}</span>
-                            <span>Expires: {deal.expires}</span>
-                          </div>
-                        </div>
-                        <span className="bg-[var(--accent)]/20 text-[var(--accent)] px-2 py-1 rounded-full text-xs font-medium">
-                          Active
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {deals.length === 0 && (
-                    <div className="text-center py-8 text-[var(--muted)]">
-                      No active deals. Create your first deal above.
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          )}
-
         </div>
       </main>
 
