@@ -14,6 +14,11 @@ export default function DealsBannerStrip() {
   const ref = useRef<HTMLDivElement | null>(null);
   const timer = useRef<NodeJS.Timeout | null>(null);
 
+  const formatExpires = (val: string) => {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? val : d.toLocaleDateString();
+  };
+
   const scrollByAmount = () => {
     const el = ref.current;
     if (!el) return;
@@ -41,14 +46,14 @@ export default function DealsBannerStrip() {
         <div className="flex items-center gap-2">
           <button
             aria-label="Previous"
-            className="h-8 w-8 grid place-items-center rounded-md bg-black/30 border border-white/10 hover:bg-black/40"
+            className="h-8 w-8 grid place-items-center rounded-md bg-black/30 border border-token hover:bg-black/40"
             onClick={() => ref.current?.scrollBy({ left: -320, behavior: "smooth" })}
           >
             <ChevronLeft size={16} />
           </button>
           <button
             aria-label="Next"
-            className="h-8 w-8 grid place-items-center rounded-md bg-black/30 border border-white/10 hover:bg-black/40"
+            className="h-8 w-8 grid place-items-center rounded-md bg-black/30 border border-token hover:bg-black/40"
             onClick={() => ref.current?.scrollBy({ left: 320, behavior: "smooth" })}
           >
             <ChevronRight size={16} />
@@ -65,13 +70,13 @@ export default function DealsBannerStrip() {
             <article
               key={d._id}
               data-card
-              className="min-w-[280px] max-w-[320px] flex-1 rounded-lg border border-white/10 bg-[var(--surface)]/80 backdrop-blur hover:border-[var(--accent)]/50 transition-colors p-4"
+              className="min-w-[280px] max-w-[320px] flex-1 rounded-lg border border-token bg-[var(--surface)]/80 backdrop-blur hover:border-[var(--accent)]/50 transition-colors p-4"
             >
-              <div className="text-sm text-white/60">{new Date(d.expires).toLocaleDateString()}</div>
+              <div className="text-sm text-muted-token">{formatExpires(d.expires)}</div>
               <div className="font-semibold mt-1 line-clamp-1">{d.title}</div>
-              <p className="text-sm text-white/70 mt-1 line-clamp-2">{d.description}</p>
-              <div className="mt-3 flex items-center justify-between text-xs text-white/60">
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">{d.category}</span>
+              <p className="text-sm text-muted-token mt-1 line-clamp-2">{d.description}</p>
+              <div className="mt-3 flex items-center justify-between text-xs text-muted-token">
+                <span className="px-2 py-0.5 rounded bg-white/5 border border-token">{d.category}</span>
                 <Link href="/deals" className="text-[var(--accent)] hover:underline">View</Link>
               </div>
             </article>
