@@ -12,7 +12,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link href="/admin" className="btn-secondary">Dashboard</Link>
         <Link href="/admin/products" className="btn-accent">Products</Link>
         <Link href="/admin/categories" className="btn-secondary">Categories</Link>
-        <Link href="/admin/deals" className="btn-secondary">Deals</Link>
       </nav>
       <div>{children}</div>
     </div>
