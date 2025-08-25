@@ -12,7 +12,7 @@ export default async function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto p-4">
         <h1 className="text-2xl font-semibold mb-4">Admin Login</h1>
         <LoginForm />
         <p className="mt-4 text-sm text-white/60">Use your admin token to sign in.</p>
@@ -20,10 +20,5 @@ export default async function AdminPage() {
     );
   }
 
-  return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-      <AdminDashboard />
-    </div>
-  );
+  return <AdminDashboard />;
 }
