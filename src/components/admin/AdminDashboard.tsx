@@ -472,16 +472,16 @@ export default function AdminDashboard() {
   // Sidebar component
   const Sidebar = () => (
     <div className="w-64 bg-[var(--surface)] border-r border-white/10 h-screen fixed left-0 top-0 z-40">
-      <div className="p-6 border-b border-white/10">
+      <div className="p-4 border-b border-white/10">
         <h1 className="text-xl font-bold text-[var(--foreground)]">Admin Dashboard</h1>
         <p className="text-sm text-[var(--muted)] mt-1">Price War Store</p>
       </div>
-      <nav className="p-4 space-y-2">
+      <nav className="p-3 space-y-1">
         {navigationItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveSection(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors ${
               activeSection === item.id
                 ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30'
                 : 'text-[var(--muted)] hover:bg-white/5 hover:text-[var(--foreground)]'
@@ -497,8 +497,8 @@ export default function AdminDashboard() {
 
   // Top navigation bar
   const TopNav = () => (
-    <div className="h-16 bg-[var(--surface)] border-b border-white/10 fixed top-0 left-64 right-0 z-30">
-      <div className="flex items-center justify-between h-full px-6">
+    <div className="h-12 bg-[var(--surface)] border-b border-white/10 fixed top-0 left-64 right-0 z-30">
+      <div className="flex items-center justify-between h-full px-4">
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)] capitalize">
             {navigationItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
@@ -543,20 +543,20 @@ export default function AdminDashboard() {
     switch (activeSection) {
       case 'overview':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatsCard title="Total Products" value={products.length} icon="📦" color="blue" />
               <StatsCard title="Categories" value={categories.length} icon="🏷️" color="green" />
               <StatsCard title="Featured Products" value={products.filter(p => p.featured).length} icon="⭐" color="yellow" />
               <StatsCard title="Active Deals" value={deals.length} icon="🎯" color="purple" />
             </div>
             
-            <Card className="p-6">
+            <Card className="p-4">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button 
                   onClick={() => setActiveSection("products")}
-                  className="p-4 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
+                  className="p-3 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
                 >
                   <div className="text-2xl mb-2">📦</div>
                   <div className="font-medium text-[var(--foreground)]">Manage Products</div>
@@ -564,7 +564,7 @@ export default function AdminDashboard() {
                 </button>
                 <button 
                   onClick={() => setActiveSection("featured")}
-                  className="p-4 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
+                  className="p-3 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
                 >
                   <div className="text-2xl mb-2">⭐</div>
                   <div className="font-medium text-[var(--foreground)]">Featured Products</div>
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
                 </button>
                 <button 
                   onClick={() => setActiveSection("categories")}
-                  className="p-4 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
+                  className="p-3 border border-white/10 rounded-lg hover:bg-white/5 text-left transition-colors"
                 >
                   <div className="text-2xl mb-2">🏷️</div>
                   <div className="font-medium text-[var(--foreground)]">Categories</div>
@@ -584,10 +584,10 @@ export default function AdminDashboard() {
         );
       case 'products':
         return (
-          <div className="space-y-6">
-            <Card className="p-6">
+          <div className="space-y-4">
+            <Card className="p-4">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Add New Product</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <input 
                   placeholder="Product Name" 
                   className="input" 
@@ -638,18 +638,18 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <button 
-                className="mt-4 btn-accent px-6 py-2 rounded-lg transition-colors" 
+                className="mt-3 btn-accent px-5 py-2 rounded-lg transition-colors" 
                 onClick={createProduct}
               >
                 Add Product
               </button>
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-4">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">All Products ({products.length})</h3>
               <div className="space-y-3">
                 {products.map((p) => (
-                  <div key={p._id} className="flex items-center gap-4 p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                  <div key={p._id} className="flex items-center gap-3 p-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
                     {p.imageUrl ? (
                       <img src={p.imageUrl} alt={p.name} className="w-16 h-16 object-cover rounded-lg" />
                     ) : (
@@ -672,7 +672,7 @@ export default function AdminDashboard() {
                   </div>
                 ))}
                 {products.length === 0 && (
-                  <div className="text-center py-8 text-[var(--muted)]">
+                  <div className="text-center py-6 text-[var(--muted)]">
                     No products found. Add your first product above.
                   </div>
                 )}
@@ -682,8 +682,8 @@ export default function AdminDashboard() {
         );
       case 'categories':
         return (
-          <div className="space-y-6">
-            <Card className="p-6">
+          <div className="space-y-4">
+            <Card className="p-4">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Add New Category</h3>
               <div className="flex gap-4">
                 <input 
@@ -699,7 +699,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })} 
                 />
                 <button 
-                  className="btn-accent px-6 py-2 rounded-lg transition-colors" 
+                  className="btn-accent px-5 py-2 rounded-lg transition-colors" 
                   onClick={createCategory}
                 >
                   Add Category
@@ -707,9 +707,9 @@ export default function AdminDashboard() {
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-4">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">All Categories ({categories.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {categories.map((c) => (
                   <div key={c._id} className="p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
                     <h4 className="font-medium text-[var(--foreground)]">{c.label}</h4>
@@ -718,7 +718,7 @@ export default function AdminDashboard() {
                   </div>
                 ))}
                 {categories.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-[var(--muted)]">
+                  <div className="col-span-full text-center py-6 text-[var(--muted)]">
                     No categories found. Add your first category above.
                   </div>
                 )}
@@ -728,7 +728,7 @@ export default function AdminDashboard() {
         );
       case 'featured':
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Featured Products</h2>
               <div className="flex space-x-2">
@@ -741,9 +741,9 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {featuredSections.map(section => (
-                <div key={section.id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div key={section.id} className="bg-gray-800 p-4 rounded-lg shadow-lg">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold flex items-center">
                       {section.title}
@@ -778,7 +778,7 @@ export default function AdminDashboard() {
         );
       case 'deals':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <DealsManager title="Admin • Limited-time Offers" />
           </div>
         );
@@ -792,8 +792,8 @@ export default function AdminDashboard() {
       <Sidebar />
       <TopNav />
       
-      <main className="ml-64 pt-16 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className="ml-64 pt-12 p-4">
+        <div className="max-w-7xl mx-auto space-y-4">
           {renderSection()}
         </div>
       </main>
