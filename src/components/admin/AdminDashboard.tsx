@@ -25,12 +25,13 @@ interface Product {
   featured: boolean;
 }
 
-// Navigation items for sidebar (Deals removed)
+// Navigation items for sidebar (Includes Deals section)
 const navigationItems = [
   { id: "overview", label: "Overview", icon: "📊" },
   { id: "products", label: "Products", icon: "📦" },
   { id: "categories", label: "Categories", icon: "🏷️" },
   { id: "featured", label: "Featured", icon: "⭐" },
+  { id: "deals", label: "Deals", icon: "🎯" },
 ];
 
 export default function AdminDashboard() {
