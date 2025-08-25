@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import DealsManager from "@/components/admin/DealsManager";
 
 export default function AdminDealsPage() {
-  // Redirect this route to the main admin area; deals management now lives in the dashboard
-  redirect("/admin");
+  return (
+    <div className="space-y-6">
+      <DealsManager title="Admin • Limited-time Offers" />
+    </div>
+  );
 }
