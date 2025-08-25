@@ -131,8 +131,8 @@ export default async function Home() {
             id: String(p._id || p.slug || p.name),
             name: p.name,
             imageUrl: p.imageUrl,
-            // map to dollars if numeric (API typically stores cents)
-            price: typeof p.price === 'number' ? (p.price > 1000 ? p.price / 100 : p.price) : undefined,
+            // prices are stored in cents in admin; convert to dollars for display
+            price: typeof p.price === 'number' ? p.price / 100 : undefined,
             href: `/product/${p._id || p.slug || encodeURIComponent(p.name)}`,
           }))}
         />
